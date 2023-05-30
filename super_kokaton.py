@@ -21,7 +21,7 @@ class Bird(pg.sprite.Sprite):
         self.cnt = 0  # こうかとんが飛んだときに頂上で浮遊している時間
         self.j_h = 0  # こうかとんが飛ぶときの高さの設定
         self.num=num
-        self.img = pg.image.load(f"ex05/fig/{self.num}.png")
+        self.img = pg.image.load(f"ex05_yu/ex05/fig/{self.num}.png")
         self.rect = self.img.get_rect()
         self.rect.centerx = x
         self.rect.bottom = 500
@@ -55,11 +55,11 @@ class Bird(pg.sprite.Sprite):
                     self.rect.bottom += 5  # 5づつ降下する
         elif mode == 1:
             self.num = 8  # こうかとんの画像を8番に変更
-            self.img = pg.image.load(f"ex05/fig/{self.num}.png")
+            self.img = pg.image.load(f"ex05_yu/ex05/fig/{self.num}.png")
             screen.blit(self.img,self.rect)
         elif mode == 2:
             self.num = 6  # こうかとんの画像を6番に変更
-            self.img = pg.image.load(f"ex05/fig/{self.num}.png")
+            self.img = pg.image.load(f"ex05_yu/ex05/fig/{self.num}.png")
             screen.blit(self.img,self.rect)
 
 
@@ -73,7 +73,7 @@ class Background:
         引数1 screen: 描画の時につかうpg.Surface
         """
         self.x=0  # 背景の移動距離self.xを0に初期化
-        self.bg_img = pg.image.load("ex05/fig/pg_bg.jpg")
+        self.bg_img = pg.image.load("ex05_yu/ex05/fig/pg_bg.jpg")
         self.bg_img_fl = pg.transform.flip(self.bg_img,True,False)
         screen.blit(self.bg_img_fl,[-800,0])
 
@@ -109,7 +109,7 @@ class Enemy(pg.sprite.Sprite):
         self.e_x = e_x
         self.vx = 0  # こうかとんの動きに連動した動きを設定するself.vxを0に初期化
         self.ev = 3  # 敵の移動速度を3に初期化
-        self.ene_img = pg.transform.rotozoom(pg.image.load("ex05/fig/monster11.png"),0,0.2)
+        self.ene_img = pg.transform.rotozoom(pg.image.load("ex05_yu/ex05/fig/monster11.png"),0,0.2)
         self.rect = self.ene_img.get_rect()
         self.rect.centerx = self.e_x
         self.rect.bottom = 500
@@ -141,7 +141,7 @@ class Goal(pg.sprite.Sprite):
         引数1 screen: 描画の時につかうpg.Surface
         """
         super().__init__()
-        self.g_img = pg.transform.rotozoom(pg.image.load("ex05/fig/torinosu_egg.png"),0,0.2)
+        self.g_img = pg.transform.rotozoom(pg.image.load("ex05_yu/ex05/fig/torinosu_egg.png"),0,0.2)
         self.rect = self.g_img.get_rect()
         self.rect.centerx = 3200
         self.rect.bottom = 500
@@ -191,25 +191,22 @@ class Ground(pg.sprite.Sprite):
 
 class Score:
     """
-    スコアに関するクラス
-    敵を上から踏みつけると10、ゴールすると100
+    残り時間や敵の数をスコアとして表示するクラス
     """
     def __init__(self):
-        """
-        スコアの初期化
-        """
-        self.score = 0
         self.font = pg.font.Font(None, 50)
-        self.color = (0, 0, 0)
+        self.color = (0, 0, 255)
+        self.score = 0
         self.image = self.font.render(f"Score: {self.score}", 0, self.color)
         self.rect = self.image.get_rect()
-        self.rect.center = 100, 50
+        self.whi = 700
+        self.hei = 500
+        self.rectcenter = self.whi, self.hei
+    
+    def score_up(self, add):
+        self.score += add
 
-    def update(self, screen:pg.Surface):
-        """
-        その時のスコアに応じた更新
-        引数1 screen: 描画の時につかうpg.Surface
-        """
+    def update(self, screen: pg.Surface):
         self.image = self.font.render(f"Score: {self.score}", 0, self.color)
         screen.blit(self.image, self.rect)
 
