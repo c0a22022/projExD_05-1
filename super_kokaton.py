@@ -1,6 +1,7 @@
 import pygame as pg
 import sys
 import random
+import time
 
 WIDTH = 800  # ディスプレイの横幅
 HEIGHT = 600  # ディスプレイの縦幅
@@ -21,7 +22,7 @@ class Bird(pg.sprite.Sprite):
         self.cnt = 0  # こうかとんが飛んだときに頂上で浮遊している時間
         self.j_h = 0  # こうかとんが飛ぶときの高さの設定
         self.num=num
-        self.img = pg.image.load(f"ex05_yu/ex05/fig/{self.num}.png")
+        self.img = pg.image.load(f"ex05/fig/{self.num}.png")
         self.rect = self.img.get_rect()
         self.rect.centerx = x
         self.rect.bottom = 500
@@ -55,11 +56,18 @@ class Bird(pg.sprite.Sprite):
                     self.rect.bottom += 5  # 5づつ降下する
         elif mode == 1:
             self.num = 8  # こうかとんの画像を8番に変更
-            self.img = pg.image.load(f"ex05_yu/ex05/fig/{self.num}.png")
+            self.img = pg.image.load(f"ex05/fig/{self.num}.png")
             screen.blit(self.img,self.rect)
+            font1 = pg.font.SysFont(None, 80)
+            text1 = font1.render("GAME OVER",True,(0,0,0))  
+            screen.blit(text1, (240,200)) # GAME OVER テキストを表示
         elif mode == 2:
             self.num = 6  # こうかとんの画像を6番に変更
-            self.img = pg.image.load(f"ex05_yu/ex05/fig/{self.num}.png")
+            self.img = pg.image.load(f"ex05/fig/{self.num}.png")
+            screen.blit(self.img,self.rect) 
+            font1 = pg.font.SysFont(None, 80)
+            text1 = font1.render("GAME CLEAR",True,(255,215,0))  
+            screen.blit(text1, (220,200)) # GAMECLEAテキストを表示
             screen.blit(self.img,self.rect)
 
 
@@ -73,7 +81,7 @@ class Background:
         引数1 screen: 描画の時につかうpg.Surface
         """
         self.x=0  # 背景の移動距離self.xを0に初期化
-        self.bg_img = pg.image.load("ex05_yu/ex05/fig/pg_bg.jpg")
+        self.bg_img = pg.image.load("ex05/fig/pg_bg.jpg")
         self.bg_img_fl = pg.transform.flip(self.bg_img,True,False)
         screen.blit(self.bg_img_fl,[-800,0])
 
@@ -109,7 +117,7 @@ class Enemy(pg.sprite.Sprite):
         self.e_x = e_x
         self.vx = 0  # こうかとんの動きに連動した動きを設定するself.vxを0に初期化
         self.ev = 3  # 敵の移動速度を3に初期化
-        self.ene_img = pg.transform.rotozoom(pg.image.load("ex05_yu/ex05/fig/monster11.png"),0,0.2)
+        self.ene_img = pg.transform.rotozoom(pg.image.load("ex05/fig/monster11.png"),0,0.2)
         self.rect = self.ene_img.get_rect()
         self.rect.centerx = self.e_x
         self.rect.bottom = 500
@@ -141,7 +149,7 @@ class Goal(pg.sprite.Sprite):
         引数1 screen: 描画の時につかうpg.Surface
         """
         super().__init__()
-        self.g_img = pg.transform.rotozoom(pg.image.load("ex05_yu/ex05/fig/torinosu_egg.png"),0,0.2)
+        self.g_img = pg.transform.rotozoom(pg.image.load("ex05/fig/torinosu_egg.png"),0,0.2)
         self.rect = self.g_img.get_rect()
         self.rect.centerx = 3200
         self.rect.bottom = 500
@@ -202,13 +210,30 @@ class Score:
         self.whi = 700
         self.hei = 500
         self.rectcenter = self.whi, self.hei
-    
-    def score_up(self, add):
-        self.score += add
 
     def update(self, screen: pg.Surface):
         self.image = self.font.render(f"Score: {self.score}", 0, self.color)
         screen.blit(self.image, self.rect)
+
+
+class TitleScreen:
+    """
+    # タイトル画面の背景色やテキストの処理
+    """
+    def __init__(self,screen_width, screen_height):
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+        self.background_color = (175,238,238)  # 背景色
+        self.text_color = (0,128,0) # テキストの色
+        self.title_font = pg.font.Font(None, 100) # メインタイトルの設定
+        self.subtitle_font = pg.font.Font(None, 50) # サブタイトルの設定
+        self.title_text = self.title_font.render("Super Kokaton", True, self.text_color) 
+        self.subtitle_text = self.subtitle_font.render("Press Space to Start", True, self.text_color) 
+
+    def show(self,screen):
+        screen.fill(self.background_color)
+        screen.blit(self.title_text, (160,200)) # メインタイトルの描画
+        screen.blit(self.subtitle_text, (250,300)) # サブタイトルの描画
 
 
 class Time():
@@ -300,54 +325,76 @@ def main():
     bird_h = 0
     wall = 0
     clock = pg.time.Clock()
+    game_state = 0
+    title_screen = TitleScreen(WIDTH,HEIGHT)
     
     while True:
         vx = 0
         on_grd = 1
         for  event in pg.event.get():
             if event.type == pg.QUIT: return
-        if event.type == pg.KEYDOWN and event.key == pg.K_RIGHT and mode == 0:  # 十字キー右を押した際の処理
-            bird.mode = 0
-            bg.x += 5
-            vx = -5
-        if event.type == pg.KEYDOWN and event.key == pg.K_LEFT and mode == 0:  # 十字キー左を押した際の処理
-            bird.mode = 1
-            bg.x -= 5
-            if bg.x > 0 :
-                vx = 5
-        if bg.x <= 0:  # 初期値より左にはいけないような処理
-            bg.x = 0
-        if bird.rect.centerx >= gl.rect.centerx:  # ゴールより右にいけないような処理
-            bg.x = 3000
-            vx = 0
-        for ground in pg.sprite.spritecollide(bird, grds, False):  # こうかとんが接地しているときの処理
-            if bird.rect.bottom == ground.rect.top + 1:
-                on_grd = 0
-            if bird.rect.bottom != ground.rect.top + 1:
-                if bird.rect.right - (bird.rect.right % 10) == ground.rect.left:
-                    wall = 1
-                    if event.type == pg.KEYDOWN and event.key == pg.K_RIGHT and mode == 0:
-                        bg.x -= 5
-                        vx = 0
-                        mode = 0
-                if bird.rect.left + (10 - bird.rect.left % 10) == ground.rect.right:
-                    wall = 1
-                    if event.type == pg.KEYDOWN and event.key == pg.K_LEFT and mode == 0:
-                        bg.x += 5
-                        vx = 0
-                        mode = 0
-        if on_grd == 0 and event.type == pg.KEYDOWN and event.key == pg.K_UP:  # 十字キー上を押したときの処理
-            bird.jump = 1
-            bird.rect.bottom -= 5
-            bird_h = bird.rect.bottom
-        for ene in pg.sprite.spritecollide(bird, enes, False):  # こうかとんと敵が接触したときの処理
-            if bird.rect.bottom <= ene.rect.top + 5:  # 上から踏んだ時に踏んだ敵を消しスコアを10アップ
-                enes.remove(ene)
-                scr.score += 10
-                pass
-            else:  # 上以外からぶつかった時ゲームオーバーになり、残り描画時間設定用のtmrが回り始める
+            if game_state == 0:
+                title_screen.show(screen)
+                pg.display.update()
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                game_state = 1
+        if game_state == 1:
+            if event.type == pg.KEYDOWN and event.key == pg.K_RIGHT and mode == 0:  # 十字キー右を押した際の処理
+                bird.mode = 0
+                bg.x += 5
+                vx = -5
+            if event.type == pg.KEYDOWN and event.key == pg.K_LEFT and mode == 0:  # 十字キー左を押した際の処理
+                bird.mode = 1
+                bg.x -= 5
+                if bg.x > 0 :
+                    vx = 5
+            if bg.x <= 0:  # 初期値より左にはいけないような処理
+                bg.x = 0
+            if bird.rect.centerx >= gl.rect.centerx:  # ゴールより右にいけないような処理
+                bg.x = 3000
+                vx = 0
+            for ground in pg.sprite.spritecollide(bird, grds, False):  # こうかとんが接地しているときの処理
+                if bird.rect.bottom == ground.rect.top + 1:
+                    on_grd = 0
+                if bird.rect.bottom != ground.rect.top + 1:
+                    if bird.rect.right - (bird.rect.right % 10) == ground.rect.left:
+                        wall = 1
+                        if event.type == pg.KEYDOWN and event.key == pg.K_RIGHT and mode == 0:
+                            bg.x -= 5
+                            vx = 0
+                            mode = 0
+                    if bird.rect.left + (10 - bird.rect.left % 10) == ground.rect.right:
+                        wall = 1
+                        if event.type == pg.KEYDOWN and event.key == pg.K_LEFT and mode == 0:
+                            bg.x += 5
+                            vx = 0
+                            mode = 0
+            if on_grd == 0 and event.type == pg.KEYDOWN and event.key == pg.K_UP:  # 十字キー上を押したときの処理
+                bird.jump = 1
+                bird.rect.bottom -= 5
+                bird_h = bird.rect.bottom
+            for ene in pg.sprite.spritecollide(bird, enes, False):  # こうかとんと敵が接触したときの処理
+                if bird.rect.bottom <= ene.rect.top + 5:  # 上から踏んだ時に踏んだ敵を消しスコアを10アップ
+                    enes.remove(ene)
+                    scr.score += 10
+                    pass
+                else:  # 上以外からぶつかった時ゲームオーバーになり、残り描画時間設定用のtmrが回り始める
+                    tmr += 1
+                    mode = 1
+            for goal in pg.sprite.spritecollide(bird,gls,False):  # こうかとんがゴールに接触したときの処理
                 tmr += 1
-                mode = 1
+                mode = 2
+                if tmr == 1:
+                    scr.score += 100
+            if tmr >= 150:  # ゲーム終了から150カウント進んだら終了するための処理
+                return
+            if bird.rect.top > 600:  # 描画範囲より下に行った場合の処理
+                font1 = pg.font.SysFont(None, 80)
+                text1 = font1.render("GAME OVER",True,(0,0,0))  
+                screen.blit(text1, (240,200)) # GAME OVER テキストを表示
+                pg.display.update()
+                time.sleep(1)
+                return
         for coin in pg.sprite.spritecollide(bird, coins, True):
             scr.score += 50
         for goal in pg.sprite.spritecollide(bird,gls,False):  # こうかとんがゴールに接触したときの処理
@@ -371,6 +418,7 @@ def main():
         
         pg.display.update()
         clock.tick(60)
+
 
 if __name__ == "__main__":
     pg.init()
