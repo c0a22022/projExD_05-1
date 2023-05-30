@@ -64,11 +64,10 @@ class Bird(pg.sprite.Sprite):
         elif mode == 2:
             self.num = 6  # こうかとんの画像を6番に変更
             self.img = pg.image.load(f"ex05/fig/{self.num}.png")
-            screen.blit(self.img,self.rect) 
             font1 = pg.font.SysFont(None, 80)
-            text1 = font1.render("GAME CLEAR",True,(255,215,0))  
+            text1 = font1.render("GAME CLEAR",True,(255,215,0)) 
+            screen.blit(self.img,self.rect) 
             screen.blit(text1, (220,200)) # GAMECLEAテキストを表示
-            screen.blit(self.img,self.rect)
 
 
 class Background:
@@ -199,19 +198,28 @@ class Ground(pg.sprite.Sprite):
 
 class Score:
     """
-    残り時間や敵の数をスコアとして表示するクラス
+    スコアに関するクラス
+    敵を上から踏みつけると10、ゴールすると100
     """
     def __init__(self):
-        self.font = pg.font.Font(None, 50)
-        self.color = (0, 0, 255)
+        """
+        スコアの初期化
+        """
         self.score = 0
+        self.font = pg.font.Font(None, 50)
+        self.color = (0, 0, 0)
         self.image = self.font.render(f"Score: {self.score}", 0, self.color)
         self.rect = self.image.get_rect()
+        self.rect.center = 100, 50
         self.whi = 700
         self.hei = 500
         self.rectcenter = self.whi, self.hei
 
-    def update(self, screen: pg.Surface):
+    def update(self, screen:pg.Surface):
+        """
+        その時のスコアに応じた更新
+        引数1 screen: 描画の時につかうpg.Surface
+        """
         self.image = self.font.render(f"Score: {self.score}", 0, self.color)
         screen.blit(self.image, self.rect)
 
