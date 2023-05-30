@@ -152,7 +152,7 @@ class Goal(pg.sprite.Sprite):
         self.rect = self.g_img.get_rect()
         self.rect.centerx = 3200
         self.rect.bottom = 500
-        screen.blit(self.g_img,self.rect)
+        screen.blit(self.g_img, self.rect)
 
     def update(self, screen: pg.Surface, bg: Background, vx: int):
         """
@@ -162,7 +162,7 @@ class Goal(pg.sprite.Sprite):
         引数3 vx: こうかとんの動きに応じたx座標の移動速度
         """
         self.rect.move_ip(vx,0)
-        screen.blit(self.g_img,self.rect)
+        screen.blit(self.g_img, self.rect)
 
 
 class Ground(pg.sprite.Sprite):
@@ -251,18 +251,18 @@ class Time():
     def __init__(self):
         self.font = pg.font.Font(None, 50)
         self.color = (0, 0, 255)
-        self.time = 0
+        self.time = 60 #時間制限
         self.time_60 = 0
         self.image = self.font.render(f"Time: {self.time}", 0, self.color)
         self.rect = self.image.get_rect()
         self.rect.center = WIDTH - 125, 50 # Time表示位置
-        self.time = 60 #時間制限
 
-    def time_up(self, add: int):
+    def time_up(self, add: int, mode: int):
         self.time_60 += add 
         if self.time_60 == 60: # カウントが60になったら
             self.time_60 = 0 
-            self.time -= 1 
+            if mode == 0:
+                self.time -= 1 
 
     def update(self, screen: pg.Surface):
         if self.time <= 10:
@@ -283,7 +283,7 @@ class Coin(pg.sprite.Sprite):
         super().__init__()
         self.c_x = c_x
         self.c_y = c_y
-        self.coin_img = pg.transform.rotozoom(pg.image.load(f"ex05_m/fig/food_daizu_meet.png"), 0, 0.1)
+        self.coin_img = pg.transform.rotozoom(pg.image.load(f"ex05/fig/food_daizu_meet.png"), 0, 0.1)
         self.coin_immg = pg.image
         self.rect = self.coin_img.get_rect()
         self.rect.centerx = self.c_x
@@ -389,6 +389,15 @@ def main():
                 else:  # 上以外からぶつかった時ゲームオーバーになり、残り描画時間設定用のtmrが回り始める
                     tmr += 1
                     mode = 1
+            if bird.rect.top > 600:  # 描画範囲より下に行った場合の処理
+                font1 = pg.font.SysFont(None, 80)
+                text1 = font1.render("GAME OVER",True,(0,0,0))  
+                screen.blit(text1, (240,200)) # GAME OVER テキストを表示
+                pg.display.update()
+                time.sleep(1)
+                return
+            for coin in pg.sprite.spritecollide(bird, coins, True):
+                scr.score += 50
             for goal in pg.sprite.spritecollide(bird,gls,False):  # こうかとんがゴールに接触したときの処理
                 tmr += 1
                 mode = 2
@@ -397,35 +406,19 @@ def main():
             if tmr >= 150:  # ゲーム終了から150カウント進んだら終了するための処理
                 return
             if bird.rect.top > 600:  # 描画範囲より下に行った場合の処理
-                font1 = pg.font.SysFont(None, 80)
-                text1 = font1.render("GAME OVER",True,(0,0,0))  
-                screen.blit(text1, (240,200)) # GAME OVER テキストを表示
-                pg.display.update()
-                time.sleep(1)
                 return
-        for coin in pg.sprite.spritecollide(bird, coins, True):
-            scr.score += 50
-        for goal in pg.sprite.spritecollide(bird,gls,False):  # こうかとんがゴールに接触したときの処理
-            tmr += 1
-            mode = 2
-            if tmr == 1:
-                scr.score += 100
-        if tmr >= 150:  # ゲーム終了から150カウント進んだら終了するための処理
-            return
-        if bird.rect.top > 600:  # 描画範囲より下に行った場合の処理
-            return
-        time.time_up(1)
-        bg.update(screen, mode, wall)
-        grds.update(screen, bg, vx)
-        bird.update(screen, mode, on_grd, bird_h)
-        enes.update(screen, vx, mode)
-        gls.update(screen, bg, vx)
-        scr.update(screen)
-        time.update(screen)
-        coins.update(screen, vx)
+            time.time_up(1, mode)
+            bg.update(screen, mode, wall)
+            grds.update(screen, bg, vx)
+            bird.update(screen, mode, on_grd, bird_h)
+            enes.update(screen, vx, mode)
+            gls.update(screen, bg, vx)
+            scr.update(screen)
+            time.update(screen)
+            coins.update(screen, vx)
         
-        pg.display.update()
-        clock.tick(60)
+            pg.display.update()
+            clock.tick(60)
 
 
 if __name__ == "__main__":
