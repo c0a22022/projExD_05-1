@@ -211,6 +211,57 @@ class Score:
         screen.blit(self.image, self.rect)
 
 
+class Time():
+    """
+    タイムに関するクラス
+    """
+    def __init__(self):
+        self.font = pg.font.Font(None, 50)
+        self.color = (0, 0, 255)
+        self.time = 0
+        self.time_60 = 0
+        self.image = self.font.render(f"Time: {self.time}", 0, self.color)
+        self.rect = self.image.get_rect()
+        self.rect.center = WIDTH - 125, 50 # Time表示位置
+        self.time = 60 #時間制限
+
+    def time_up(self, add: int):
+        self.time_60 += add 
+        if self.time_60 == 60: # カウントが60になったら
+            self.time_60 = 0 
+            self.time -= 1 
+
+    def update(self, screen: pg.Surface):
+        if self.time <= 10:
+            self.color = (255, 0, 0)
+        self.image = self.font.render(f"Time: {self.time}", 0, self.color)
+        screen.blit(self.image, self.rect)
+
+
+class Coin(pg.sprite.Sprite):
+    """
+    コインに関するクラス
+    """
+    def __init__(self, screen: pg.Surface, c_x: int, c_y: int):
+        """
+        引数1 c_x:コインのx座標
+        引数2 x_y:コインのy座標
+        """
+        super().__init__()
+        self.c_x = c_x
+        self.c_y = c_y
+        self.coin_img = pg.transform.rotozoom(pg.image.load(f"ex05_m/fig/food_daizu_meet.png"), 0, 0.1)
+        self.coin_immg = pg.image
+        self.rect = self.coin_img.get_rect()
+        self.rect.centerx = self.c_x
+        self.rect.centery = self.c_y
+        screen.blit(self.coin_img, self.rect)
+    
+    def update(self, screen: pg.Surface, vx: int):
+        self.rect.move_ip(vx, 0)
+        screen.blit(self.coin_img, self.rect)
+
+
 def main():
     pg.display.set_caption("Super_Kokaton")
     screen = pg.display.set_mode((WIDTH,HEIGHT))
@@ -221,7 +272,9 @@ def main():
     gls = pg.sprite.Group()
     grws = pg.sprite.Group()
     grds = pg.sprite.Group()
+    coins = pg.sprite.Group()
     scr = Score()
+    time = Time()
 
     for i in range(4):
         enes.add(Enemy(screen, i * 200 + 1000))
@@ -238,6 +291,8 @@ def main():
     grds.add(grd4)
     grd5 = Ground(screen, 2800, 2850, 101)
     grds.add(grd5)
+    for i in range(7):
+        coins.add(Coin(screen,i*400+500,300))
  
     tmr = 0  # ゲームが終わった際の描画時間用タイマー
     mode = 0
@@ -293,6 +348,8 @@ def main():
             else:  # 上以外からぶつかった時ゲームオーバーになり、残り描画時間設定用のtmrが回り始める
                 tmr += 1
                 mode = 1
+        for coin in pg.sprite.spritecollide(bird, coins, True):
+            scr.score += 50
         for goal in pg.sprite.spritecollide(bird,gls,False):  # こうかとんがゴールに接触したときの処理
             tmr += 1
             mode = 2
@@ -302,12 +359,16 @@ def main():
             return
         if bird.rect.top > 600:  # 描画範囲より下に行った場合の処理
             return
+        time.time_up(1)
         bg.update(screen, mode, wall)
         grds.update(screen, bg, vx)
         bird.update(screen, mode, on_grd, bird_h)
         enes.update(screen, vx, mode)
         gls.update(screen, bg, vx)
         scr.update(screen)
+        time.update(screen)
+        coins.update(screen, vx)
+        
         pg.display.update()
         clock.tick(60)
 
